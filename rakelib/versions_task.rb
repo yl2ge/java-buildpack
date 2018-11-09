@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,8 +65,11 @@ module Package
       'geode_store'                         => 'Apache Geode Tomcat Session Store',
       'google_stackdriver_debugger'         => 'Google Stackdriver Debugger',
       'groovy'                              => 'Groovy',
+      'introscope_agent'                    => 'CA Introscope APM Framework',
+      'jacoco_agent'                        => 'JaCoCo Agent',
       'jre'                                 => 'OpenJDK JRE',
       'jrebel_agent'                        => 'JRebel Agent',
+      'jvmkill_agent'                       => 'jvmkill Agent',
       'lifecycle_support'                   => 'Tomcat Lifecycle Support',
       'logging_support'                     => 'Tomcat Logging Support',
       'luna_security_provider'              => 'Gemalto Luna Security Provider',
@@ -72,13 +77,12 @@ module Package
       'memory_calculator'                   => 'Memory Calculator',
       'metric_writer'                       => 'Metric Writer',
       'new_relic_agent'                     => 'New Relic Agent',
-      'play_framework_auto_reconfiguration' => 'Play Framework Auto-reconfiguration',
-      'play_framework_jpa_plugin'           => 'Play Framework JPA Plugin',
       'postgresql_jdbc'                     => 'PostgreSQL JDBC Driver',
       'protect_app_security_provider'       => 'Gemalto ProtectApp Security Provider',
       'redis_store'                         => 'Redis Session Store',
       'spring_auto_reconfiguration'         => 'Spring Auto-reconfiguration',
       'spring_boot_cli'                     => 'Spring Boot CLI',
+      'takipi_agent'                        => 'Takipi Agent',
       'tomcat'                              => 'Tomcat',
       'your_kit_profiler'                   => 'YourKit Profiler'
     }.freeze

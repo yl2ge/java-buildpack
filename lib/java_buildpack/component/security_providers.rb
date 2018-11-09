@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +33,7 @@ module JavaBuildpack
       def write_to(destination)
         FileUtils.mkdir_p destination.parent
 
-        destination.open(File::CREAT | File::WRONLY) do |f|
+        destination.open(File::CREAT | File::APPEND | File::WRONLY) do |f|
           each_with_index { |security_provider, index| f.write "security.provider.#{index + 1}=#{security_provider}\n" }
         end
       end

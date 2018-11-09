@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,9 +22,9 @@ require 'logging_helper'
 require 'java_buildpack/framework/java_memory_assistant/heap_dump_folder'
 
 describe JavaBuildpack::Framework::JavaMemoryAssistantHeapDumpFolder do
-  include_context 'application_helper'
-  include_context 'component_helper'
-  include_context 'logging_helper'
+  include_context 'with application help'
+  include_context 'with component help'
+  include_context 'with logging help'
 
   let(:logger) { described_class.instance.get_logger String }
 
@@ -81,14 +83,14 @@ describe JavaBuildpack::Framework::JavaMemoryAssistantHeapDumpFolder do
     end
 
     before do
-      allow(services).to receive(:find_service).with('heap-dump')
-                                               .and_return('volume_mounts' =>
-                                                 [
-                                                   {
-                                                     'container_dir' => '/my_volume',
-                                                     'mode'          => 'rw'
-                                                   }
-                                                 ])
+      allow(services).to receive(:find_volume_service).with('heap-dump')
+                                                      .and_return('volume_mounts' =>
+                                                        [
+                                                          {
+                                                            'container_dir' => '/my_volume',
+                                                            'mode'          => 'rw'
+                                                          }
+                                                        ])
     end
 
     it 'adds \'jma.heap_dump_folder\' with volume container_dir as path root', :enable_log_file, log_level: 'INFO' do
@@ -111,14 +113,14 @@ describe JavaBuildpack::Framework::JavaMemoryAssistantHeapDumpFolder do
     end
 
     before do
-      allow(services).to receive(:find_service).with('heap-dump')
-                                               .and_return('volume_mounts' =>
-                                                 [
-                                                   {
-                                                     'container_dir' => '/my_volume',
-                                                     'mode'          => 'r'
-                                                   }
-                                                 ])
+      allow(services).to receive(:find_volume_service).with('heap-dump')
+                                                      .and_return('volume_mounts' =>
+                                                        [
+                                                          {
+                                                            'container_dir' => '/my_volume',
+                                                            'mode'          => 'r'
+                                                          }
+                                                        ])
     end
 
     it 'fails if volume does not have write mode active', :enable_log_file, log_level: 'DEBUG' do

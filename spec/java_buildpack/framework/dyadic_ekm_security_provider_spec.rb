@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +20,7 @@ require 'component_helper'
 require 'java_buildpack/framework/dyadic_ekm_security_provider'
 
 describe JavaBuildpack::Framework::DyadicEkmSecurityProvider do
-  include_context 'component_helper'
+  include_context 'with component help'
 
   it 'does not detect without dyadic-n/a service' do
     expect(component.detect).to be_nil
@@ -98,6 +100,38 @@ describe JavaBuildpack::Framework::DyadicEkmSecurityProvider do
       component.release
 
       expect(extension_directories).to include(droplet.sandbox + 'ext')
+    end
+
+    context do
+
+      let(:java_home_delegate) do
+        delegate         = JavaBuildpack::Component::MutableJavaHome.new
+        delegate.root    = app_dir + '.test-java-home'
+        delegate.version = JavaBuildpack::Util::TokenizedVersion.new('9.0.0')
+
+        delegate
+      end
+
+      it 'adds JAR to classpath during compile in Java 9',
+         cache_fixture: 'stub-dyadic-ekm-security-provider.tar.gz' do
+
+        component.compile
+
+        expect(additional_libraries).to include(droplet.sandbox + 'usr/lib/dsm/dsm-advapi-1.0.jar')
+      end
+
+      it 'adds JAR to classpath during release in Java 9' do
+        component.release
+
+        expect(additional_libraries).to include(droplet.sandbox + 'usr/lib/dsm/dsm-advapi-1.0.jar')
+      end
+
+      it 'adds does not add extension directory in Java 9' do
+        component.release
+
+        expect(extension_directories).not_to include(droplet.sandbox + 'ext')
+      end
+
     end
 
     def check_file_contents(actual, expected)

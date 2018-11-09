@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +40,7 @@ require 'rakelib/stage_buildpack_task'
 require 'rakelib/package_task'
 require 'rakelib/versions_task'
 Package::DependencyCacheTask.new
-Package::StageBuildpackTask.new(Dir['bin/**/*', 'config/**/*', 'lib/**/*', 'resources/**/*']
+Package::StageBuildpackTask.new(Dir['bin/**/*', 'config/**/*', 'lib/**/*', 'resources/**/*', 'LICENSE', 'NOTICE']
                                   .reject { |f| File.directory? f })
 Package::PackageTask.new
 Package::VersionsTask.new

@@ -1,7 +1,7 @@
-# Encoding: utf-8
+# frozen_string_literal: true
 
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,8 @@ module JavaBuildpack
         download_jar
         @droplet.copy_resources
 
-        write_configuration @application.services.find_service(CONTRAST_FILTER)['credentials']
+        write_configuration @application.services.find_service(FILTER, API_KEY, SERVICE_KEY, TEAMSERVER_URL,
+                                                               USERNAME)['credentials']
       end
 
       # (see JavaBuildpack::Component::BaseComponent#release)
@@ -49,29 +50,32 @@ module JavaBuildpack
 
       # (see JavaBuildpack::Component::VersionedDependencyComponent#jar_name)
       def jar_name
-        "contrast-engine-#{@version.to_s.split('_')[0]}.jar"
+        @version < INFLECTION_VERSION ? "contrast-engine-#{short_version}.jar" : "java-agent-#{short_version}.jar"
       end
 
       # (see JavaBuildpack::Component::VersionedDependencyComponent#supports?)
       def supports?
-        @application.services.one_service?(CONTRAST_FILTER, API_KEY, SERVICE_KEY, TEAMSERVER_URL, USERNAME)
+        @application.services.one_service? FILTER, API_KEY, SERVICE_KEY, TEAMSERVER_URL, USERNAME
       end
 
       private
 
-      API_KEY = 'api_key'.freeze
+      API_KEY = 'api_key'
 
-      CONTRAST_FILTER = 'contrast-security'.freeze
+      FILTER = 'contrast-security'
 
-      PLUGIN_PACKAGE = 'com.aspectsecurity.contrast.runtime.agent.plugins.'.freeze
+      INFLECTION_VERSION = JavaBuildpack::Util::TokenizedVersion.new('3.4.3').freeze
 
-      SERVICE_KEY = 'service_key'.freeze
+      PLUGIN_PACKAGE = 'com.aspectsecurity.contrast.runtime.agent.plugins'
 
-      TEAMSERVER_URL = 'teamserver_url'.freeze
+      SERVICE_KEY = 'service_key'
 
-      USERNAME = 'username'.freeze
+      TEAMSERVER_URL = 'teamserver_url'
 
-      private_constant :API_KEY, :CONTRAST_FILTER, :PLUGIN_PACKAGE, :SERVICE_KEY, :TEAMSERVER_URL, :USERNAME
+      USERNAME = 'username'
+
+      private_constant :API_KEY, :FILTER, :INFLECTION_VERSION, :PLUGIN_PACKAGE, :SERVICE_KEY, :TEAMSERVER_URL,
+                       :USERNAME
 
       def add_contrast(doc, credentials)
         contrast = doc.add_element('contrast')
@@ -107,6 +111,10 @@ module JavaBuildpack
 
       def contrast_config
         @droplet.sandbox + 'contrast.config'
+      end
+
+      def short_version
+        "#{@version[0]}.#{@version[1]}.#{@version[2]}"
       end
 
       def write_configuration(credentials)

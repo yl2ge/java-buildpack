@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +28,7 @@ require 'java_buildpack/container/tomcat/tomcat_logging_support'
 require 'java_buildpack/container/tomcat/tomcat_redis_store'
 
 describe JavaBuildpack::Container::Tomcat do
-  include_context 'component_helper'
+  include_context 'with component help'
 
   let(:component) { StubTomcat.new context }
 
@@ -91,9 +93,8 @@ describe JavaBuildpack::Container::Tomcat do
   end
 
   it 'returns command' do
-    expect(component.command).to eq("test-var-2 test-var-1 #{java_home.as_env_var} JAVA_OPTS=\"test-opt-2 " \
-                                      'test-opt-1 -Dhttp.port=$PORT" exec $PWD/.java-buildpack/tomcat/bin/catalina.sh' \
-                                      ' run')
+    expect(component.command).to eq("test-var-2 test-var-1 JAVA_OPTS=$JAVA_OPTS #{java_home.as_env_var} exec " \
+                                    '$PWD/.java-buildpack/tomcat/bin/catalina.sh run')
   end
 
   context do

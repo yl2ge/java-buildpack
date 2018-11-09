@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2017 the original author or authors.
+# Copyright 2013-2018 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +19,10 @@ require 'spec_helper'
 require 'component_helper'
 require 'java_buildpack/component/mutable_java_home'
 require 'java_buildpack/jre/open_jdk_like_jre'
+require 'resolv'
 
 describe JavaBuildpack::Jre::OpenJDKLikeJre do
-  include_context 'component_helper'
+  include_context 'with component help'
 
   let(:java_home) { JavaBuildpack::Component::MutableJavaHome.new }
 
@@ -42,13 +45,6 @@ describe JavaBuildpack::Jre::OpenJDKLikeJre do
     expect(java_home.root).to eq(sandbox)
   end
 
-  it 'adds OnOutOfMemoryError to java_opts' do
-    component.detect
-    component.release
-
-    expect(java_opts).to include('-XX:OnOutOfMemoryError=$PWD/.java-buildpack/open_jdk_like_jre/bin/killjava.sh')
-  end
-
   it 'adds java.io.tmpdir to java_opts' do
     component.detect
     component.release
@@ -56,18 +52,26 @@ describe JavaBuildpack::Jre::OpenJDKLikeJre do
     expect(java_opts).to include('-Djava.io.tmpdir=$TMPDIR')
   end
 
-  context do
+  it 'does not disable dns caching if no BOSH DNS',
+     cache_fixture: 'stub-java.tar.gz' do
 
-    let(:component_id) { 'open_jdk_jre' }
+    component.detect
+    component.compile
 
-    it 'places the killjava script (with appropriately substituted content) in the bin directory',
-       cache_fixture: 'stub-java.tar.gz' do
+    expect(networking.networkaddress_cache_ttl).not_to be
+    expect(networking.networkaddress_cache_negative_ttl).not_to be
+  end
 
-      component.detect
-      component.compile
+  it 'disables dns caching if BOSH DNS',
+     cache_fixture: 'stub-java.tar.gz' do
 
-      expect(sandbox + 'bin/killjava.sh').to exist
-    end
+    allow_any_instance_of(Resolv::DNS::Config).to receive(:nameserver_port).and_return([['169.254.0.2', 53]])
+
+    component.detect
+    component.compile
+
+    expect(networking.networkaddress_cache_ttl).to eq 0
+    expect(networking.networkaddress_cache_negative_ttl).to eq 0
   end
 
 end
