@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +27,7 @@ module JavaBuildpack
       def compile
         download_tar false
 
-        credentials = @application.services.find_service(FILTER, PRIVATE_KEY_DATA)['credentials']
+        credentials = @application.services.find_service(FILTER)['credentials']
         write_json_file credentials[PRIVATE_KEY_DATA]
       end
 
@@ -41,8 +39,8 @@ module JavaBuildpack
           .add_agentpath_with_props(@droplet.sandbox + 'cdbg_java_agent.so', '--logtostderr' => 1)
           .add_system_property('com.google.cdbg.auth.serviceaccount.enable', true)
           .add_system_property('com.google.cdbg.auth.serviceaccount.jsonfile', json_file)
-          .add_system_property('com.google.cdbg.module', application_name)
-          .add_system_property('com.google.cdbg.version', application_version)
+          .add_system_property('com.google.cdbg.module', @application.details['application_name'])
+          .add_system_property('com.google.cdbg.version', @application.details['application_version'])
       end
 
       protected
@@ -54,19 +52,11 @@ module JavaBuildpack
 
       FILTER = /google-stackdriver-debugger/
 
-      PRIVATE_KEY_DATA = 'PrivateKeyData'
+      PRIVATE_KEY_DATA = 'PrivateKeyData'.freeze
 
       private_constant :FILTER, :PRIVATE_KEY_DATA
 
       private
-
-      def application_name
-        @configuration['application_name'] || @application.details['application_name']
-      end
-
-      def application_version
-        @configuration['application_version'] || @application.details['application_version']
-      end
 
       def json_file
         @droplet.sandbox + 'svc.json'

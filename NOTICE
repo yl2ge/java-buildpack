@@ -1,6 +1,10 @@
-Cloud Foundry Java Buildpack
+Copyright (c) 2018-Present General Electric Company. All Rights Reserved. 
 
+Predix Edge Manager Java Buildpack forked from Cloud Foundry Java buildpack
 Copyright (c) 2013-Present CloudFoundry.org Foundation, Inc. All Rights Reserved.
+
+Modified files: /resources/
+                README
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

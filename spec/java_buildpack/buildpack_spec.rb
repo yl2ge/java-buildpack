@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,8 +20,8 @@ require 'java_buildpack/buildpack'
 require 'java_buildpack/component/base_component'
 
 describe JavaBuildpack::Buildpack do
-  include_context 'with application help'
-  include_context 'with logging help'
+  include_context 'application_helper'
+  include_context 'logging_helper'
 
   let(:stub_container1) { instance_double('StubContainer1', detect: nil, component_name: 'StubContainer1') }
 
@@ -49,9 +47,9 @@ describe JavaBuildpack::Buildpack do
     allow(JavaBuildpack::Util::ConfigurationUtils).to receive(:load).and_call_original
     allow(JavaBuildpack::Util::ConfigurationUtils)
       .to receive(:load).with('components').and_return(
-        'containers' => %w[Test::StubContainer1 Test::StubContainer2],
-        'frameworks' => %w[Test::StubFramework1 Test::StubFramework2],
-        'jres'       => %w[Test::StubJre1 Test::StubJre2]
+        'containers' => ['Test::StubContainer1', 'Test::StubContainer2'],
+        'frameworks' => ['Test::StubFramework1', 'Test::StubFramework2'],
+        'jres'       => ['Test::StubJre1', 'Test::StubJre2']
       )
 
     allow(Test::StubContainer1).to receive(:new).and_return(stub_container1)
@@ -131,8 +129,8 @@ describe JavaBuildpack::Buildpack do
     expect(buildpack.release)
       .to eq({ 'addons'                => [],
                'config_vars'           => {},
-               'default_process_types' => { 'web'  => 'JAVA_OPTS="" && test-command',
-                                            'task' => 'JAVA_OPTS="" && test-command' } }.to_yaml)
+               'default_process_types' => { 'web'  => 'test-command',
+                                            'task' => 'test-command' } }.to_yaml)
   end
 
   it 'loads configuration file matching JRE class name' do

@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +26,7 @@ module JavaBuildpack
       # @param [Pathname, nil] file_name the file to use for initialization. If no file is passed in, the instance is
       #                                  empty.
       def initialize(file_name)
-        return if file_name.nil?
+        return self if file_name.nil?
 
         contents = file_name.open(&:read)
         contents.gsub!(/[\r\n\f]+ /, '')

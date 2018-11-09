@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +18,7 @@ require 'component_helper'
 require 'java_buildpack/framework/luna_security_provider'
 
 describe JavaBuildpack::Framework::LunaSecurityProvider do
-  include_context 'with component help'
+  include_context 'component_helper'
 
   it 'does not detect without luna-n/a service' do
     expect(component.detect).to be_nil
@@ -127,45 +125,7 @@ describe JavaBuildpack::Framework::LunaSecurityProvider do
     end
 
     context do
-
-      let(:java_home_delegate) do
-        delegate         = JavaBuildpack::Component::MutableJavaHome.new
-        delegate.root    = app_dir + '.test-java-home'
-        delegate.version = JavaBuildpack::Util::TokenizedVersion.new('9.0.0')
-
-        delegate
-      end
-
-      it 'adds JAR to classpath during compile in Java 9',
-         cache_fixture: 'stub-luna-security-provider.tar' do
-
-        component.compile
-
-        expect(root_libraries).to include(droplet.sandbox + 'jsp/LunaProvider.jar')
-      end
-
-      it 'adds JAR to classpath during release in Java 9' do
-        component.release
-
-        expect(root_libraries).to include(droplet.sandbox + 'jsp/LunaProvider.jar')
-      end
-
-      it 'adds does not add extension directory in Java 9' do
-        component.release
-
-        expect(extension_directories).not_to include(droplet.sandbox + 'ext')
-      end
-
-    end
-
-    context do
-      let(:configuration) do
-        {
-          'logging_enabled'        => true,
-          'ha_logging_enabled'     => true,
-          'tcp_keep_alive_enabled' => false
-        }
-      end
+      let(:configuration) { { 'logging_enabled' => true, 'ha_logging_enabled' => true } }
 
       it 'writes configuration',
          cache_fixture: 'stub-luna-security-provider.tar' do
@@ -175,26 +135,6 @@ describe JavaBuildpack::Framework::LunaSecurityProvider do
         expect(sandbox + 'Chrystoki.conf').to exist
         check_file_contents(sandbox + 'Chrystoki.conf',
                             'spec/fixtures/framework_luna_security_provider_logging/Chrystoki.conf')
-      end
-    end
-
-    context do
-      let(:configuration) do
-        {
-          'logging_enabled'        => true,
-          'ha_logging_enabled'     => true,
-          'tcp_keep_alive_enabled' => true
-        }
-      end
-
-      it 'writes configuration with client tcp keep alive',
-         cache_fixture: 'stub-luna-security-provider.tar' do
-
-        component.compile
-
-        expect(sandbox + 'Chrystoki.conf').to exist
-        check_file_contents(sandbox + 'Chrystoki.conf',
-                            'spec/fixtures/framework_luna_security_provider_tcp_keep_alive/Chrystoki.conf')
       end
     end
 

@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,7 +64,7 @@ module JavaBuildpack
 
         # (see JavaBuildpack::Component::VersionedDependencyComponent#supports?)
         def supports?
-          start_script&.exist? && play_jar
+          start_script && start_script.exist? && play_jar
         end
 
         # Returns the version of the play application
@@ -123,9 +121,9 @@ module JavaBuildpack
 
         private
 
-        ORIGINAL_BOOTSTRAP = 'play.core.server.NettyServer'
+        ORIGINAL_BOOTSTRAP = 'play.core.server.NettyServer'.freeze
 
-        REPLACEMENT_BOOTSTRAP = 'org.cloudfoundry.reconfiguration.play.Bootstrap'
+        REPLACEMENT_BOOTSTRAP = 'org.cloudfoundry.reconfiguration.play.Bootstrap'.freeze
 
         private_constant :ORIGINAL_BOOTSTRAP, :REPLACEMENT_BOOTSTRAP
 

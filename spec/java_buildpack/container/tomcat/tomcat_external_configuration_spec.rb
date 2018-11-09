@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,26 +15,15 @@
 
 require 'spec_helper'
 require 'component_helper'
-require 'internet_availability_helper'
 require 'java_buildpack/container/tomcat/tomcat_external_configuration'
 
 describe JavaBuildpack::Container::TomcatExternalConfiguration do
-  include_context 'with component help'
+  include_context 'component_helper'
 
   let(:component_id) { 'tomcat' }
 
   it 'always detects' do
     expect(component.detect).to eq("tomcat-external-configuration=#{version}")
-  end
-
-  it 'does guarantee that internet access is available when downloading',
-     app_fixture:   'container_tomcat',
-     cache_fixture: 'stub-tomcat-external-configuration.tar.gz' do
-
-    expect_any_instance_of(JavaBuildpack::Util::Cache::InternetAvailability)
-      .to receive(:available).with(true, 'The Tomcat External Configuration download location is always accessible')
-
-    component.compile
   end
 
   it 'extracts Tomcat external configuration files from a GZipped TAR',

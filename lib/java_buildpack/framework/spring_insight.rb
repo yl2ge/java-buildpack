@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -141,7 +139,7 @@ module JavaBuildpack
       end
 
       def find_insight_agent
-        service     = @application.services.find_service FILTER, 'agent_download_url', 'service_instance_id'
+        service     = @application.services.find_service FILTER
         credentials = service['credentials']
         version     = credentials['version'] || '1.0.0'
         uri         = credentials['agent_download_url']
@@ -172,7 +170,6 @@ module JavaBuildpack
       def uber_agent_zip(location)
         candidates = Pathname.glob(location + 'springsource-insight-uber-agent-*.zip')
         raise 'There was not exactly one Uber Agent zip' if candidates.size != 1
-
         candidates[0]
       end
 
@@ -187,7 +184,6 @@ module JavaBuildpack
       def transport_plugin(root)
         return root + 'transport/http/insight-agent-http-*.jar' if http_transport?
         return root + 'transport/rabbitmq/insight-agent-rabbitmq-*.jar' if rabbit_transport?
-
         (root + 'transport/activemq/insight-agent-activemq-*.jar') if active_transport?
       end
 

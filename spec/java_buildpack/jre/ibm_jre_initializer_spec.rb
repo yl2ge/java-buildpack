@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
 # Copyright 2017 the original author or authors.
 #
@@ -21,7 +19,7 @@ require 'java_buildpack/component/mutable_java_home'
 require 'java_buildpack/jre/ibm_jre_initializer'
 
 describe JavaBuildpack::Jre::IbmJreInitializer do
-  include_context 'with component help'
+  include_context 'component_helper'
 
   let(:java_home) { JavaBuildpack::Component::MutableJavaHome.new }
 

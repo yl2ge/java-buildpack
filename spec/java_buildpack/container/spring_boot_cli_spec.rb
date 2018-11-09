@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +18,7 @@ require 'component_helper'
 require 'java_buildpack/container/spring_boot_cli'
 
 describe JavaBuildpack::Container::SpringBootCLI do
-  include_context 'with component help'
+  include_context 'component_helper'
 
   it 'does not detect a non-Groovy project',
      app_fixture: 'container_main' do
@@ -94,10 +92,9 @@ describe JavaBuildpack::Container::SpringBootCLI do
   it 'returns command',
      app_fixture: 'container_spring_boot_cli_valid_app' do
 
-    expect(component.release).to eq("#{env_vars_str} #{java_home.as_env_var} " \
+    expect(component.release).to eq("#{env_vars_str} #{java_home.as_env_var} JAVA_OPTS=#{java_opts_str} " \
                                     'exec $PWD/.java-buildpack/spring_boot_cli/bin/spring run ' \
-                                    '-cp $PWD/.additional_libs/test-jar-1.jar:$PWD/.additional_libs/test-jar-2.jar:' \
-                                    '$PWD/.root_libs/test-jar-3.jar:$PWD/.root_libs/test-jar-4.jar ' \
+                                    '-cp $PWD/.additional_libs/test-jar-1.jar:$PWD/.additional_libs/test-jar-2.jar ' \
                                     'directory/pogo_4.groovy invalid.groovy pogo_1.groovy pogo_2.groovy pogo_3.groovy')
   end
 

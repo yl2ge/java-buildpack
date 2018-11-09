@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,11 +32,12 @@ module JavaBuildpack
 
         @droplet.copy_resources
         @droplet.security_providers << 'com.dyadicsec.provider.DYCryptoProvider'
-        @droplet.root_libraries << dyadic_jar if @droplet.java_home.java_9_or_later?
 
-        credentials = @application.services.find_service(FILTER, 'ca', 'key', 'recv_timeout', 'retries', 'send_timeout',
-                                                         'servers')['credentials']
-        write_files(credentials)
+        credentials = @application.services.find_service(FILTER)['credentials']
+        write_key credentials['key']
+        write_cert credentials['ca']
+        write_conf credentials['servers'], credentials['send_timeout'], credentials['recv_timeout'],
+                   credentials['retries']
       end
 
       # (see JavaBuildpack::Component::BaseComponent#release)
@@ -46,11 +45,7 @@ module JavaBuildpack
         @droplet.environment_variables
                 .add_environment_variable 'LD_LIBRARY_PATH', @droplet.sandbox + 'usr/lib'
 
-        if @droplet.java_home.java_9_or_later?
-          @droplet.root_libraries << dyadic_jar
-        else
-          @droplet.extension_directories << ext_dir
-        end
+        @droplet.extension_directories << ext_dir
       end
 
       protected
@@ -101,21 +96,14 @@ module JavaBuildpack
       def write_conf(servers, send_timeout, recv_timeout, retries)
         FileUtils.mkdir_p conf_file.parent
         conf_file.open(File::CREAT | File::WRONLY) do |f|
-          f.write <<~CONFIG
-            servers         = #{servers}
-            send_timeout    = #{send_timeout}
-            recv_timeout    = #{recv_timeout}
-            retries         = #{retries}
-            ha_mode_standby = 1
-          CONFIG
+          f.write <<EOS
+servers         = #{servers}
+send_timeout    = #{send_timeout}
+recv_timeout    = #{recv_timeout}
+retries         = #{retries}
+ha_mode_standby = 1
+EOS
         end
-      end
-
-      def write_files(credentials)
-        write_key credentials['key']
-        write_cert credentials['ca']
-        write_conf credentials['servers'], credentials['send_timeout'], credentials['recv_timeout'],
-                   credentials['retries']
       end
 
       def write_key(key)

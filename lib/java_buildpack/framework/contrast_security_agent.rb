@@ -1,7 +1,7 @@
-# frozen_string_literal: true
+# Encoding: utf-8
 
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,16 +33,14 @@ module JavaBuildpack
         download_jar
         @droplet.copy_resources
 
-        write_configuration @application.services.find_service(FILTER, API_KEY, SERVICE_KEY, TEAMSERVER_URL,
-                                                               USERNAME)['credentials']
+        write_configuration @application.services.find_service(CONTRAST_FILTER)['credentials']
       end
 
       # (see JavaBuildpack::Component::BaseComponent#release)
       def release
-        @droplet.java_opts.add_system_property('contrast.override.appname', application_name) unless appname_exist?
-
         @droplet.java_opts
                 .add_system_property('contrast.dir', '$TMPDIR')
+                .add_system_property('contrast.override.appname', application_name)
                 .add_preformatted_options("-javaagent:#{qualify_path(@droplet.sandbox + jar_name, @droplet.root)}=" \
                                           "#{qualify_path(contrast_config, @droplet.root)}")
       end
@@ -51,32 +49,29 @@ module JavaBuildpack
 
       # (see JavaBuildpack::Component::VersionedDependencyComponent#jar_name)
       def jar_name
-        @version < INFLECTION_VERSION ? "contrast-engine-#{short_version}.jar" : "java-agent-#{short_version}.jar"
+        "contrast-engine-#{@version.to_s.split('_')[0]}.jar"
       end
 
       # (see JavaBuildpack::Component::VersionedDependencyComponent#supports?)
       def supports?
-        @application.services.one_service? FILTER, API_KEY, SERVICE_KEY, TEAMSERVER_URL, USERNAME
+        @application.services.one_service?(CONTRAST_FILTER, API_KEY, SERVICE_KEY, TEAMSERVER_URL, USERNAME)
       end
 
       private
 
-      API_KEY = 'api_key'
+      API_KEY = 'api_key'.freeze
 
-      FILTER = 'contrast-security'
+      CONTRAST_FILTER = 'contrast-security'.freeze
 
-      INFLECTION_VERSION = JavaBuildpack::Util::TokenizedVersion.new('3.4.3').freeze
+      PLUGIN_PACKAGE = 'com.aspectsecurity.contrast.runtime.agent.plugins.'.freeze
 
-      PLUGIN_PACKAGE = 'com.aspectsecurity.contrast.runtime.agent.plugins'
+      SERVICE_KEY = 'service_key'.freeze
 
-      SERVICE_KEY = 'service_key'
+      TEAMSERVER_URL = 'teamserver_url'.freeze
 
-      TEAMSERVER_URL = 'teamserver_url'
+      USERNAME = 'username'.freeze
 
-      USERNAME = 'username'
-
-      private_constant :API_KEY, :FILTER, :INFLECTION_VERSION, :PLUGIN_PACKAGE, :SERVICE_KEY, :TEAMSERVER_URL,
-                       :USERNAME
+      private_constant :API_KEY, :CONTRAST_FILTER, :PLUGIN_PACKAGE, :SERVICE_KEY, :TEAMSERVER_URL, :USERNAME
 
       def add_contrast(doc, credentials)
         contrast = doc.add_element('contrast')
@@ -110,16 +105,8 @@ module JavaBuildpack
         @application.details['application_name'] || 'ROOT'
       end
 
-      def appname_exist?
-        @droplet.java_opts.any? { |java_opt| java_opt =~ /contrast.override.appname/ }
-      end
-
       def contrast_config
         @droplet.sandbox + 'contrast.config'
-      end
-
-      def short_version
-        "#{@version[0]}.#{@version[1]}.#{@version[2]}"
       end
 
       def write_configuration(credentials)

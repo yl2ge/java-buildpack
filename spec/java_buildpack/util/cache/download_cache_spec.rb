@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,15 +17,14 @@ require 'spec_helper'
 require 'application_helper'
 require 'internet_availability_helper'
 require 'logging_helper'
-require 'digest'
 require 'fileutils'
 require 'java_buildpack/util/cache/download_cache'
 require 'net/http'
 
 describe JavaBuildpack::Util::Cache::DownloadCache do
-  include_context 'with application help'
-  include_context 'with internet availability help'
-  include_context 'with logging help'
+  include_context 'application_helper'
+  include_context 'internet_availability_helper'
+  include_context 'logging_helper'
 
   let(:ca_certs_directory) { instance_double('Pathname', exist?: false, to_s: 'test-path') }
 
@@ -41,11 +38,7 @@ describe JavaBuildpack::Util::Cache::DownloadCache do
 
   let(:uri_secure) { 'https://foo-uri/' }
 
-  let(:download_cache) do
-    download_cache           = described_class.new(mutable_cache_root, immutable_cache_root)
-    download_cache.retry_max = 0
-    download_cache
-  end
+  let(:download_cache) { described_class.new(mutable_cache_root, immutable_cache_root) }
 
   before do
     described_class.const_set :CA_FILE, ca_certs_directory
@@ -344,7 +337,7 @@ describe JavaBuildpack::Util::Cache::DownloadCache do
   end
 
   def cache_file(root, extension)
-    root + "#{Digest::SHA256.hexdigest('http://foo-uri/')}.#{extension}"
+    root + "http%3A%2F%2Ffoo-uri%2F.#{extension}"
   end
 
   def expect_complete_cache(root)

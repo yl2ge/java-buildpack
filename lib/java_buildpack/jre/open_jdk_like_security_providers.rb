@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,20 +36,16 @@ module JavaBuildpack
 
       # (see JavaBuildpack::Component::BaseComponent#release)
       def release
-        return if @droplet.java_home.java_9_or_later?
-
         @droplet.extension_directories << java_security.parent.parent + 'ext' unless java_security.nil?
       end
 
       private
 
-      JAVA_9_SECURITY = 'conf/security/java.security'
+      JRE_SECURITY = 'lib/security/java.security'.freeze
 
-      JRE_SECURITY = 'lib/security/java.security'
+      SERVER_JRE_SECURITY = 'jre/lib/security/java.security'.freeze
 
-      SERVER_JRE_SECURITY = 'jre/lib/security/java.security'
-
-      private_constant :JAVA_9_SECURITY, :JRE_SECURITY, :SERVER_JRE_SECURITY
+      private_constant :JRE_SECURITY, :SERVER_JRE_SECURITY
 
       def existing_security_providers(existing_security)
         JavaBuildpack::Util::Properties.new(existing_security)
@@ -65,15 +59,9 @@ module JavaBuildpack
       end
 
       def java_security
-        return java_9_security if @droplet.java_home.java_9_or_later? && java_9_security.exist?
         return jre_security if jre_security.exist?
         return server_jre_security if server_jre_security.exist?
-
         nil
-      end
-
-      def java_9_security
-        @droplet.java_home.root + JAVA_9_SECURITY
       end
 
       def jre_security

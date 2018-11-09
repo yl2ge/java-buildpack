@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,38 +18,32 @@ require 'droplet_helper'
 require 'java_buildpack/util/spring_boot_utils'
 
 describe JavaBuildpack::Util::SpringBootUtils do
-  include_context 'with droplet help'
+  include_context 'droplet_helper'
 
   let(:utils) { described_class.new }
 
   it 'detects a dist Spring Boot application',
      app_fixture: 'container_spring_boot_dist' do
 
-    expect(utils).to be_is(application)
+    expect(utils.is?(application)).to be
   end
 
   it 'detects a staged Spring Boot application',
      app_fixture: 'container_spring_boot_staged' do
 
-    expect(utils).to be_is(application)
+    expect(utils.is?(application)).to be
   end
 
   it 'detects a JAR Spring Boot application',
      app_fixture: 'container_main_spring_boot_jar_launcher' do
 
-    expect(utils).to be_is(application)
+    expect(utils.is?(application)).to be
   end
 
   it 'does not detect a non-Spring Boot application',
      app_fixture: 'container_main' do
 
-    expect(utils).not_to be_is(application)
-  end
-
-  it 'determines if an application is a thin application',
-     app_fixture: 'container_main_spring_boot_thin_launcher' do
-
-    expect(utils).to be_thin(application)
+    expect(utils.is?(application)).not_to be
   end
 
   it 'determines the version of a dist Spring Boot application',
@@ -100,15 +92,6 @@ describe JavaBuildpack::Util::SpringBootUtils do
 
   it 'fails if there are no lib directories' do
     expect { utils.lib(droplet) }.to raise_error
-  end
-
-  it 'caches thin dependencies' do
-    allow(utils).to receive(:shell)
-
-    utils.cache_thin_dependencies java_home.root, 'test-application-root', 'test-thin-root'
-
-    expect(utils).to have_received(:shell).with("#{java_home.root + 'bin/java'} -Dthin.dryrun " \
-      '-Dthin.root=test-thin-root -cp test-application-root org.springframework.boot.loader.wrapper.ThinJarWrapper')
   end
 
 end

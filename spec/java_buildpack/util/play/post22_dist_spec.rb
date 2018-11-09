@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,62 +18,62 @@ require 'component_helper'
 require 'java_buildpack/util/play/post22_dist'
 
 describe JavaBuildpack::Util::Play::Post22Dist do
-  include_context 'with component help'
+  include_context 'component_helper'
 
   context do
 
     let(:trigger) { described_class.new(droplet).supports? }
 
     it 'does not recognize non-applications' do
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
 
     it 'does not recognize Play 2.0 applications',
        app_fixture: 'container_play_2.0_dist' do
 
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
 
     it 'does not recognize Play 2.1 dist applications',
        app_fixture: 'container_play_2.1_dist' do
 
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
 
     it 'does not recognize Play 2.1 staged applications',
        app_fixture: 'container_play_2.1_staged' do
 
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
 
     it 'does not recognize a Ratpack application',
        app_fixture: 'container_ratpack_dist' do
 
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
 
     it 'does not recognize a Spring Boot application',
        app_fixture: 'container_spring_boot_dist' do
 
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
 
     it 'does not recognize a distZip application',
        app_fixture: 'container_dist_zip' do
 
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
 
     it 'recognizes Play 2.2 dist applications',
        app_fixture: 'container_play_2.2_dist' do
 
-      expect(trigger).to be_truthy
+      expect(trigger).to be
     end
 
     it 'does not recognize Play 2.2 staged applications',
        app_fixture: 'container_play_2.2_staged' do
 
-      expect(trigger).not_to be_truthy
+      expect(trigger).not_to be
     end
   end
 

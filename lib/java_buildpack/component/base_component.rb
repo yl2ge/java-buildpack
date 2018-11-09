@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +15,7 @@
 
 require 'fileutils'
 require 'java_buildpack/component'
-require 'java_buildpack/util/cache/cache_factory'
-require 'java_buildpack/util/colorize'
+require 'java_buildpack/util/cache/application_cache'
 require 'java_buildpack/util/format_duration'
 require 'java_buildpack/util/shell'
 require 'java_buildpack/util/space_case'
@@ -89,15 +86,10 @@ module JavaBuildpack
       # @return [Void]
       def download(version, uri, name = @component_name)
         download_start_time = Time.now
-        print "#{'----->'.red.bold} Downloading #{name.blue.bold} #{version.to_s.blue} from #{uri.sanitize_uri} "
+        print "-----> Downloading #{name} #{version} from #{uri.sanitize_uri} "
 
-        JavaBuildpack::Util::Cache::CacheFactory.create.get(uri) do |file, downloaded|
-          if downloaded
-            puts "(#{(Time.now - download_start_time).duration})".green.italic
-          else
-            puts '(found in cache)'.green.italic
-          end
-
+        JavaBuildpack::Util::Cache::ApplicationCache.new.get(uri) do |file, downloaded|
+          puts downloaded ? "(#{(Time.now - download_start_time).duration})" : '(found in cache)'
           yield file
         end
       end
@@ -169,13 +161,13 @@ module JavaBuildpack
       #
       # @param [String] caption the caption to print when timing starts
       # @return [Void]
-      def with_timing(caption, include_arrow = false)
+      def with_timing(caption)
         start_time = Time.now
-        print "#{include_arrow ? '----->'.red.bold : '      '} #{caption} "
+        print "       #{caption} "
 
         yield
 
-        puts "(#{(Time.now - start_time).duration})".green.italic
+        puts "(#{(Time.now - start_time).duration})"
       end
 
       private

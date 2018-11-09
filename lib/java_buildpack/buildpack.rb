@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,12 +23,8 @@ require 'java_buildpack/component/extension_directories'
 require 'java_buildpack/component/immutable_java_home'
 require 'java_buildpack/component/java_opts'
 require 'java_buildpack/component/mutable_java_home'
-require 'java_buildpack/component/networking'
-require 'java_buildpack/component/root_libraries'
 require 'java_buildpack/component/security_providers'
 require 'java_buildpack/logging/logger_factory'
-require 'java_buildpack/util/cache/application_cache'
-require 'java_buildpack/util/colorize'
 require 'java_buildpack/util/configuration_utils'
 require 'java_buildpack/util/constantize'
 require 'java_buildpack/util/snake_case'
@@ -71,8 +65,6 @@ module JavaBuildpack
       component_detection('framework', @frameworks, false).each(&:compile)
 
       container.compile
-
-      log_cache_contents
     end
 
     # Generates the payload required to run the application.  The payload format is defined by the
@@ -89,8 +81,6 @@ module JavaBuildpack
       component_detection('framework', @frameworks, false).map(&:release)
 
       commands << container.release
-
-      commands.insert 0, @java_opts.as_env_var
       command = commands.flatten.compact.join(' && ')
 
       payload = {
@@ -108,7 +98,7 @@ module JavaBuildpack
 
     private
 
-    BUILDPACK_MESSAGE = "#{'----->'.red.bold} #{'Java Buildpack'.blue.bold} %s"
+    BUILDPACK_MESSAGE = '-----> Java Buildpack Version: %s'.freeze
 
     LOAD_ROOT = (Pathname.new(__FILE__).dirname + '..').freeze
 
@@ -118,12 +108,8 @@ module JavaBuildpack
       @logger            = Logging::LoggerFactory.instance.get_logger Buildpack
       @buildpack_version = BuildpackVersion.new
 
-      log_arguments
       log_environment_variables
       log_application_contents application
-      log_cache_contents
-
-      @java_opts = Component::JavaOpts.new(app_dir)
 
       mutable_java_home   = Component::MutableJavaHome.new
       immutable_java_home = Component::ImmutableJavaHome.new mutable_java_home, app_dir
@@ -134,9 +120,7 @@ module JavaBuildpack
         'application'           => application,
         'env_vars'              => Component::EnvironmentVariables.new(app_dir),
         'extension_directories' => Component::ExtensionDirectories.new(app_dir),
-        'java_opts'             => @java_opts,
-        'networking'            => Component::Networking.new,
-        'root_libraries'        => Component::RootLibraries.new(app_dir),
+        'java_opts'             => Component::JavaOpts.new(app_dir),
         'security_providers'    => Component::SecurityProviders.new
       }
 
@@ -170,7 +154,6 @@ module JavaBuildpack
       end
 
       raise "Application can be run by more than one #{type}: #{names detected}" if unique && detected.size > 1
-
       [detected, tags]
     end
 
@@ -187,8 +170,7 @@ module JavaBuildpack
           configuration: Util::ConfigurationUtils.load(component_id),
           droplet:       Component::Droplet.new(component_info['additional_libraries'], component_id,
                                                 component_info['env_vars'], component_info['extension_directories'],
-                                                java_home, component_info['java_opts'], component_info['networking'],
-                                                component_info['app_dir'], component_info['root_libraries'],
+                                                java_home, component_info['java_opts'], component_info['app_dir'],
                                                 component_info['security_providers'])
         }
         component.constantize.new(context)
@@ -200,24 +182,7 @@ module JavaBuildpack
         paths = []
         application.root.find { |f| paths << f.relative_path_from(application.root).to_s }
 
-        "Application Contents (#{application.root}): #{paths}"
-      end
-    end
-
-    def log_arguments
-      @logger.debug { "Arguments: #{$PROGRAM_NAME} #{ARGV}" }
-    end
-
-    def log_cache_contents
-      return unless JavaBuildpack::Util::Cache::ApplicationCache.available?
-
-      @logger.debug do
-        cache_root = Pathname.new JavaBuildpack::Util::Cache::ApplicationCache.application_cache_directory
-
-        paths = []
-        cache_root.find { |f| paths << f.relative_path_from(cache_root).to_s }
-
-        "Cache Contents (#{cache_root}): #{paths}"
+        "Application Contents: #{paths}"
       end
     end
 
@@ -266,7 +231,7 @@ module JavaBuildpack
         application = Component::Application.new(app_dir)
 
         yield new(app_dir, application) if block_given?
-      rescue StandardError => e
+      rescue => e
         handle_error(e, message)
       end
 

@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +26,7 @@ module JavaBuildpack
     class AdditionalLibraries < Array
       include JavaBuildpack::Util
 
-      # Creates an instance of the +AdditionalLibraries+ abstraction.
+      # Creates an instance of the +JAVA_OPTS+ abstraction.
       #
       # @param [Pathname] droplet_root the root directory of the droplet
       def initialize(droplet_root)

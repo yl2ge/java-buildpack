@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +15,11 @@
 
 require 'spec_helper'
 require 'application_helper'
-require 'digest'
 require 'fileutils'
 require 'java_buildpack/util/cache/cached_file'
 
 describe JavaBuildpack::Util::Cache::CachedFile do
-  include_context 'with application help'
+  include_context 'application_helper'
 
   let(:cache_root) { app_dir + 'cache/root' }
 
@@ -49,15 +46,15 @@ describe JavaBuildpack::Util::Cache::CachedFile do
   end
 
   it 'does not detect cached file' do
-    expect(file_cache).not_to be_cached
+    expect(file_cache.cached?).not_to be
   end
 
   it 'does not detect etag file' do
-    expect(file_cache).not_to be_etag
+    expect(file_cache.etag?).not_to be
   end
 
   it 'does not detect last_modified file' do
-    expect(file_cache).not_to be_last_modified
+    expect(file_cache.last_modified?).not_to be
   end
 
   context do
@@ -73,7 +70,7 @@ describe JavaBuildpack::Util::Cache::CachedFile do
     end
 
     it 'detects cached file' do
-      expect(file_cache).to be_cached
+      expect(file_cache.cached?).to be
     end
 
     it 'destroys all files' do
@@ -93,7 +90,7 @@ describe JavaBuildpack::Util::Cache::CachedFile do
     end
 
     it 'detects etag file' do
-      expect(file_cache).to be_etag
+      expect(file_cache.etag?).to be
     end
 
     it 'calls the block with the content of the last_modified file' do
@@ -102,12 +99,12 @@ describe JavaBuildpack::Util::Cache::CachedFile do
     end
 
     it 'detects last_modified file' do
-      expect(file_cache).to be_last_modified
+      expect(file_cache.last_modified?).to be
     end
   end
 
   def cache_file(extension)
-    app_dir + "#{Digest::SHA256.hexdigest('http://foo-uri/')}.#{extension}"
+    app_dir + "http%3A%2F%2Ffoo-uri%2F.#{extension}"
   end
 
   def touch(extension, content = '')

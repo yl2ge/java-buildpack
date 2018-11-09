@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +26,7 @@ require 'java_buildpack/container/tomcat/tomcat_logging_support'
 require 'java_buildpack/container/tomcat/tomcat_redis_store'
 
 describe JavaBuildpack::Container::Tomcat do
-  include_context 'with component help'
+  include_context 'component_helper'
 
   let(:component) { StubTomcat.new context }
 
@@ -59,19 +57,19 @@ describe JavaBuildpack::Container::Tomcat do
   it 'detects WEB-INF',
      app_fixture: 'container_tomcat' do
 
-    expect(component).to be_supports
+    expect(component.supports?).to be
   end
 
   it 'does not detect when WEB-INF is absent',
      app_fixture: 'container_main' do
 
-    expect(component).not_to be_supports
+    expect(component.supports?).not_to be
   end
 
   it 'does not detect when WEB-INF is present in a Java main application',
      app_fixture: 'container_main_with_web_inf' do
 
-    expect(component).not_to be_supports
+    expect(component.supports?).not_to be
   end
 
   it 'creates submodules' do
@@ -88,14 +86,14 @@ describe JavaBuildpack::Container::Tomcat do
       .to receive(:new).with(sub_configuration_context(logging_support_configuration))
     allow(JavaBuildpack::Container::TomcatRedisStore)
       .to receive(:new).with(sub_configuration_context(redis_store_configuration))
-    allow(JavaBuildpack::Container::TomcatSetenv).to receive(:new).with(context)
 
     component.sub_components context
   end
 
   it 'returns command' do
-    expect(component.command).to eq("test-var-2 test-var-1 JAVA_OPTS=$JAVA_OPTS #{java_home.as_env_var} exec " \
-                                    '$PWD/.java-buildpack/tomcat/bin/catalina.sh run')
+    expect(component.command).to eq("test-var-2 test-var-1 #{java_home.as_env_var} JAVA_OPTS=\"test-opt-2 " \
+                                      'test-opt-1 -Dhttp.port=$PORT" exec $PWD/.java-buildpack/tomcat/bin/catalina.sh' \
+                                      ' run')
   end
 
   context do

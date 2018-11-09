@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +15,6 @@
 
 require 'java_buildpack/component/modular_component'
 require 'java_buildpack/jre'
-require 'java_buildpack/jre/jvmkill_agent'
 require 'java_buildpack/jre/open_jdk_like_jre'
 require 'java_buildpack/jre/open_jdk_like_memory_calculator'
 require 'java_buildpack/jre/open_jdk_like_security_providers'
@@ -38,7 +35,6 @@ module JavaBuildpack
       # (see JavaBuildpack::Component::ModularComponent#sub_components)
       def sub_components(context)
         [
-          JvmkillAgent.new(sub_configuration_context(context, 'jvmkill_agent')),
           OpenJDKLikeJre.new(sub_configuration_context(context, 'jre')
                                .merge(component_name: self.class.to_s.space_case)),
           OpenJDKLikeMemoryCalculator.new(sub_configuration_context(context, 'memory_calculator')),

@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,16 +22,13 @@ require 'java_buildpack/component/environment_variables'
 require 'java_buildpack/component/extension_directories'
 require 'java_buildpack/component/immutable_java_home'
 require 'java_buildpack/component/java_opts'
-require 'java_buildpack/component/mutable_java_home'
-require 'java_buildpack/component/networking'
 require 'java_buildpack/component/security_providers'
 require 'java_buildpack/util/snake_case'
-require 'java_buildpack/util/tokenized_version'
 require 'pathname'
 
-shared_context 'with droplet help' do
-  include_context 'with application help'
-  include_context 'with logging help'
+shared_context 'droplet_helper' do
+  include_context 'application_helper'
+  include_context 'logging_helper'
 
   let(:additional_libraries) { JavaBuildpack::Component::AdditionalLibraries.new app_dir }
 
@@ -43,28 +38,16 @@ shared_context 'with droplet help' do
 
   let(:droplet) do
     JavaBuildpack::Component::Droplet.new(additional_libraries, component_id, environment_variables,
-                                          extension_directories, java_home, java_opts, networking, app_dir,
-                                          root_libraries, security_providers)
+                                          extension_directories, java_home, java_opts, app_dir, security_providers)
   end
 
   let(:extension_directories) { JavaBuildpack::Component::ExtensionDirectories.new app_dir }
 
-  let(:root_libraries) { JavaBuildpack::Component::RootLibraries.new app_dir }
-
-  let(:root_libs_directory) { droplet.root + '.root_libs' }
-
   let(:sandbox) { droplet.sandbox }
 
   let(:java_home) do
-    JavaBuildpack::Component::ImmutableJavaHome.new java_home_delegate, app_dir
-  end
-
-  let(:java_home_delegate) do
-    delegate         = JavaBuildpack::Component::MutableJavaHome.new
-    delegate.root    = app_dir + '.test-java-home'
-    delegate.version = JavaBuildpack::Util::TokenizedVersion.new('1.7.0_55')
-
-    delegate
+    delegate = instance_double('MutableJavaHome', root: app_dir + '.test-java-home', version: %w[1 7 55 u60])
+    JavaBuildpack::Component::ImmutableJavaHome.new delegate, app_dir
   end
 
   let(:environment_variables) do
@@ -79,8 +62,6 @@ shared_context 'with droplet help' do
     java_opts
   end
 
-  let(:networking) { JavaBuildpack::Component::Networking.new }
-
   let(:security_providers) { JavaBuildpack::Component::SecurityProviders.new }
 
   before do
@@ -89,9 +70,6 @@ shared_context 'with droplet help' do
 
     extension_directories << sandbox + 'test-extension-directory-1'
     extension_directories << sandbox + 'test-extension-directory-2'
-
-    FileUtils.cp_r 'spec/fixtures/root_libs/.', root_libs_directory
-    root_libs_directory.children.each { |child| root_libraries << child }
 
     security_providers.concat %w[test-security-provider-1 test-security-provider-2]
   end

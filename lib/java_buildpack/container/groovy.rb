@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,15 +49,15 @@ module JavaBuildpack
 
       # (see JavaBuildpack::Component::BaseComponent#release)
       def release
-        @droplet.environment_variables.add_environment_variable 'JAVA_OPTS', '$JAVA_OPTS'
         add_libs
 
         [
           @droplet.environment_variables.as_env_vars,
           @droplet.java_home.as_env_var,
+          @droplet.java_opts.as_env_var,
           'exec',
           qualify_path(@droplet.sandbox + 'bin/groovy', @droplet.root),
-          classpath,
+          @droplet.additional_libraries.as_classpath,
           relative_main_groovy,
           relative_other_groovy
         ].flatten.compact.join(' ')
@@ -77,10 +75,6 @@ module JavaBuildpack
 
       def add_libs
         (@droplet.root + '**/*.jar').glob.each { |jar| @droplet.additional_libraries << jar }
-      end
-
-      def classpath
-        ([@droplet.additional_libraries.as_classpath] + @droplet.root_libraries.qualified_paths).join(':')
       end
 
       def main_groovy

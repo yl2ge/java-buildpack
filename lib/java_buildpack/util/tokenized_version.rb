@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +23,7 @@ module JavaBuildpack
       include Comparable
 
       # The wildcard component.
-      WILDCARD = '+'
+      WILDCARD = '+'.freeze
 
       # Create a tokenized version based on the input string.
       #
@@ -90,7 +88,6 @@ module JavaBuildpack
         else
           raise "Invalid version '#{s}': must not end in '.'" if s[-1] == '.'
           raise "Invalid version '#{s}': missing component" if s =~ /\.[\._]/
-
           tokens = s.match(/^([^\.]+)(?:\.(.*))?/)
 
           major_or_minor, tail = tokens[1..-1]
@@ -107,7 +104,6 @@ module JavaBuildpack
           qualifier = nil
         else
           raise "Invalid version '#{s}': must not end in '_'" if s[-1] == '_'
-
           tokens = s.match(/^([^\_]+)(?:_(.*))?/)
 
           micro, qualifier = tokens[1..-1]
@@ -149,7 +145,6 @@ module JavaBuildpack
           end
 
           raise "Invalid version '#{@version}': no characters are allowed after a wildcard" if wildcarded && value
-
           wildcarded = true if !value.nil? && value.end_with?(WILDCARD)
         end
         raise "Invalid version '#{@version}': missing component" if !wildcarded && compact.length < 3

@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2018 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,9 +32,8 @@ module JavaBuildpack
 
         @droplet.copy_resources
         @droplet.security_providers << 'com.safenetinc.luna.provider.LunaProvider'
-        @droplet.root_libraries << luna_provider_jar if @droplet.java_home.java_9_or_later?
 
-        credentials = @application.services.find_service(FILTER, 'client', 'servers', 'groups')['credentials']
+        credentials = @application.services.find_service(FILTER)['credentials']
         write_client credentials['client']
         write_servers credentials['servers']
         write_configuration credentials['servers'], credentials['groups']
@@ -45,12 +42,7 @@ module JavaBuildpack
       # (see JavaBuildpack::Component::BaseComponent#release)
       def release
         @droplet.environment_variables.add_environment_variable 'ChrystokiConfigurationPath', @droplet.sandbox
-
-        if @droplet.java_home.java_9_or_later?
-          @droplet.root_libraries << luna_provider_jar
-        else
-          @droplet.extension_directories << ext_dir
-        end
+        @droplet.extension_directories << ext_dir
       end
 
       protected
@@ -113,10 +105,6 @@ module JavaBuildpack
         @configuration['ha_logging_enabled']
       end
 
-      def tcp_keep_alive
-        @configuration['tcp_keep_alive_enabled'] ? 1 : 0
-      end
-
       def padded_index(index)
         index.to_s.rjust(2, '0')
       end
@@ -145,31 +133,31 @@ module JavaBuildpack
         chrystoki.open(File::APPEND | File::WRONLY) do |f|
           write_prologue f
           servers.each_with_index { |server, index| write_server f, index, server }
-          f.write <<~TOKEN
-            }
+          f.write <<EOS
+}
 
-            VirtualToken = {
-          TOKEN
+VirtualToken = {
+EOS
           groups.each_with_index { |group, index| write_group f, index, group }
           write_epilogue f, groups
         end
       end
 
       def write_epilogue(f, groups)
-        f.write <<~HA
-          }
+        f.write <<EOS
+}
 
-          HAConfiguration = {
-            AutoReconnectInterval = 60;
-            HAOnly                = 1;
-            reconnAtt             = -1;
-        HA
+HAConfiguration = {
+  AutoReconnectInterval = 60;
+  HAOnly = 1;
+  reconnAtt = -1;
+EOS
         write_ha_logging(f) if ha_logging?
-        f.write <<~HA
-          }
+        f.write <<EOS
+}
 
-          HASynchronize = {
-        HA
+HASynchronize = {
+EOS
         groups.each { |group| f.write "  #{group['label']} = 1;\n" }
         f.write "}\n"
       end
@@ -184,58 +172,57 @@ module JavaBuildpack
       end
 
       def write_lib(f)
-        f.write <<~CONFIG
+        f.write <<EOS
 
-          Chrystoki2 = {
-        CONFIG
+Chrystoki2 = {
+EOS
 
         if logging?
           write_logging(f)
         else
-          f.write <<~LIB
-              LibUNIX64 = #{relative(lib_cryptoki)};
-            }
-          LIB
+          f.write <<EOS
+  LibUNIX64 = #{relative(lib_cryptoki)};
+}
+EOS
         end
       end
 
       def write_logging(f)
-        f.write <<~LOGGING
-            LibUNIX64 = #{relative(lib_cklog)};
-          }
+        f.write <<EOS
+  LibUNIX64 = #{relative(lib_cklog)};
+}
 
-          CkLog2 = {
-            Enabled      = 1;
-            LibUNIX64    = #{relative(lib_cryptoki)};
-            LoggingMask  = ALL_FUNC;
-            LogToStreams = 1;
-            NewFormat    = 1;
-          }
-        LOGGING
+CkLog2 = {
+  Enabled      = 1;
+  LibUNIX64    = #{relative(lib_cryptoki)};
+  LoggingMask  = ALL_FUNC;
+  LogToStreams = 1;
+  NewFormat    = 1;
+}
+EOS
       end
 
       def write_ha_logging(f)
-        f.write <<~HA
-          haLogStatus           = enabled;
-          haLogToStdout         = enabled;
-        HA
+        f.write <<EOS
+  haLogStatus = enabled;
+  haLogToStdout = enabled;
+EOS
       end
 
       def write_prologue(f)
         write_lib(f)
 
-        f.write <<~CLIENT
+        f.write <<EOS
 
-          LunaSA Client = {
-            TCPKeepAlive = #{tcp_keep_alive};
-            NetClient    = 1;
+LunaSA Client = {
+  NetClient = 1;
 
-            ClientCertFile    = #{relative(client_certificate)};
-            ClientPrivKeyFile = #{relative(client_private_key)};
-            HtlDir            = #{relative(@droplet.sandbox + 'htl')};
-            ServerCAFile      = #{relative(server_certificates)};
+  ClientCertFile    = #{relative(client_certificate)};
+  ClientPrivKeyFile = #{relative(client_private_key)};
+  HtlDir            = #{relative(@droplet.sandbox + 'htl')};
+  ServerCAFile      = #{relative(server_certificates)};
 
-        CLIENT
+EOS
       end
 
       def write_server(f, index, server)
